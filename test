@@ -1,0 +1,40 @@
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+
+local controllerFolder = ReplicatedStorage:WaitForChild("Controllers", 10)
+if not controllerFolder then
+	warn("ERROR: Folder 'Controllers' tidak ditemukan di ReplicatedStorage!")
+	return
+end
+
+local giftingControllerScript = controllerFolder:WaitForChild("GiftingController", 10)
+if not giftingControllerScript then
+	warn("ERROR: ModuleScript 'GiftingController' tidak ditemukan di dalam folder Controllers!")
+	return
+end
+
+local GiftingController = require(giftingControllerScript)
+
+local button = script.Parent
+local isDebounce = false
+
+local function onButtonClicked()
+	if isDebounce then return end
+	isDebounce = true
+
+	print("[GUI] Tombol ditekan. Mencoba membuka GiftingController untuk 'Soul Scythe'...")
+
+	local success, err = pcall(function()
+		GiftingController:Open("Soul Scythe")
+	end)
+
+	if success then
+		print("[GUI] Berhasil memanggil GiftingController:Open!")
+	else
+		warn("[GUI] Gagal memanggil fungsi Open. Error: " .. tostring(err))
+	end
+
+	task.wait(1)
+	isDebounce = false
+end
+
+button.MouseButton1Click:Connect(onButtonClicked)
