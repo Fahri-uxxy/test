@@ -1,0 +1,169 @@
+--[[ 
+    SCRIPT AUTO OPEN SOUL SCYTHE - FISH IT (TALON)
+    Fixed for Android Executors
+]]
+
+local Players = game:GetService("Players")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local CoreGui = game:GetService("CoreGui")
+local PlayerGui = Players.LocalPlayer:WaitForChild("PlayerGui")
+
+-- 1. MEMBERSIHKAN UI LAMA (Supaya tidak numpuk)
+pcall(function()
+    if PlayerGui:FindFirstChild("FishItAutoUI") then
+        PlayerGui.FishItAutoUI:Destroy()
+    end
+    if CoreGui:FindFirstChild("FishItAutoUI") then
+        CoreGui.FishItAutoUI:Destroy()
+    end
+end)
+
+-- 2. FUNGSI NOTIFIKASI (Agar kamu tahu statusnya)
+function Notify(msg)
+    game.StarterGui:SetCore("SendNotification", {
+        Title = "Status Script";
+        Text = msg;
+        Duration = 3;
+    })
+end
+
+Notify("Mencari Controller...")
+
+-- 3. MENCARI CONTROLLER (Dengan Loop Safety)
+-- Kita gunakan loop repeat agar script menunggu sampai foldernya benar-benar muncul
+local ControllersFolder = nil
+local MaxWait = 20 -- detik
+local Waited = 0
+
+repeat
+    ControllersFolder = ReplicatedStorage:FindFirstChild("Controllers")
+    if not ControllersFolder then
+        task.wait(1)
+        Waited = Waited + 1
+    end
+until ControllersFolder or Waited >= MaxWait
+
+if not ControllersFolder then
+    Notify("ERROR: Folder 'Controllers' tidak ditemukan di ReplicatedStorage!")
+    return -- Stop script jika folder tidak ada
+end
+
+local GiftingModule = ControllersFolder:FindFirstChild("GiftingController")
+if not GiftingModule then
+    Notify("ERROR: Script 'GiftingController' tidak ada!")
+    return
+end
+
+-- 4. REQUIRE MODULE
+local success, GiftingController = pcall(function()
+    return require(GiftingModule)
+end)
+
+if not success then
+    Notify("ERROR: Gagal load module (Require Fail).")
+    return
+end
+
+if not GiftingController.Open then
+    Notify("ERROR: Fungsi 'Open' tidak ditemukan di dalam script!")
+    -- Debugging: Print isi tabel jika fungsi Open tidak ada (Cek Console F9)
+    for k,v in pairs(GiftingController) do
+        print("Found inside module:", k)
+    end
+    return
+end
+
+Notify("Module Siap! Membuka Menu...")
+
+-- 5. MEMBUAT UI ANDROID (Simple & Clean)
+local ScreenGui = Instance.new("ScreenGui")
+local MainFrame = Instance.new("Frame")
+local Title = Instance.new("TextLabel")
+local ToggleBtn = Instance.new("TextButton")
+local UICorner = Instance.new("UICorner")
+local CloseBtn = Instance.new("TextButton")
+
+ScreenGui.Name = "FishItAutoUI"
+ScreenGui.Parent = PlayerGui -- Aman untuk semua executor
+ScreenGui.ResetOnSpawn = false
+
+-- GUI Frame
+MainFrame.Name = "MainBG"
+MainFrame.Parent = ScreenGui
+MainFrame.BackgroundColor3 = Color3.fromRGB(25, 25, 35)
+MainFrame.BorderSizePixel = 2
+MainFrame.BorderColor3 = Color3.fromRGB(255, 255, 255)
+MainFrame.Position = UDim2.new(0.5, -90, 0.3, 0) -- Tengah agak atas
+MainFrame.Size = UDim2.new(0, 180, 0, 100)
+MainFrame.Active = true
+MainFrame.Draggable = true -- Bisa digeser
+
+UICorner.CornerRadius = UDim.new(0, 12)
+UICorner.Parent = MainFrame
+
+-- Judul
+Title.Parent = MainFrame
+Title.BackgroundTransparency = 1
+Title.Position = UDim2.new(0, 0, 0, 8)
+Title.Size = UDim2.new(1, 0, 0, 20)
+Title.Font = Enum.Font.FredokaOne
+Title.Text = "FISH IT AUTO"
+Title.TextColor3 = Color3.fromRGB(0, 255, 255)
+Title.TextSize = 16
+
+-- Tombol ON/OFF
+ToggleBtn.Parent = MainFrame
+ToggleBtn.BackgroundColor3 = Color3.fromRGB(200, 50, 50) -- Merah
+ToggleBtn.Position = UDim2.new(0.1, 0, 0.35, 0)
+ToggleBtn.Size = UDim2.new(0.8, 0, 0.45, 0)
+ToggleBtn.Font = Enum.Font.GothamBold
+ToggleBtn.Text = "START"
+ToggleBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
+ToggleBtn.TextSize = 18
+
+local BtnCorner = Instance.new("UICorner")
+BtnCorner.CornerRadius = UDim.new(0, 8)
+BtnCorner.Parent = ToggleBtn
+
+-- Tombol Close (X)
+CloseBtn.Parent = MainFrame
+CloseBtn.BackgroundTransparency = 1
+CloseBtn.Position = UDim2.new(0.85, 0, 0, 0)
+CloseBtn.Size = UDim2.new(0, 25, 0, 25)
+CloseBtn.Text = "X"
+CloseBtn.TextColor3 = Color3.fromRGB(200, 200, 200)
+CloseBtn.MouseButton1Click:Connect(function()
+    ScreenGui:Destroy()
+    running = false
+end)
+
+-- 6. LOGIKA AUTO OPEN
+local running = false
+local ItemName = "Soul Scythe"
+
+ToggleBtn.MouseButton1Click:Connect(function()
+    running = not running
+    
+    if running then
+        ToggleBtn.Text = "STOP"
+        ToggleBtn.BackgroundColor3 = Color3.fromRGB(50, 200, 50) -- Hijau
+        
+        -- Loop Spam
+        task.spawn(function()
+            while running do
+                local callSuccess, err = pcall(function()
+                    GiftingController:Open(ItemName)
+                end)
+                
+                if not callSuccess then
+                    warn("Gagal membuka: " .. tostring(err))
+                end
+                
+                task.wait(0.2) -- Kecepatan spam (ubah angkanya jika mau lebih cepat/lambat)
+            end
+        end)
+    else
+        ToggleBtn.Text = "START"
+        ToggleBtn.BackgroundColor3 = Color3.fromRGB(200, 50, 50) -- Merah
+    end
+end)
