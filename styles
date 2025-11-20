@@ -1,71 +1,56 @@
 --[[ 
-    PREMIUM AUTO SOUL SCYTHE - FISH IT
-    UI Design: Modern, Glassy, Animated
+    PREMIUM AUTO SOUL SCYTHE - V2 (FIXED LOADING)
     Developer: Fahri/xenavenezue
+    Fitur: Anti-Stuck Loading & Clean UI
 ]]
 
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local CoreGui = game:GetService("CoreGui")
 local TweenService = game:GetService("TweenService")
-local RunService = game:GetService("RunService")
 
--- --- 1. SYSTEM CLEANUP & SAFETY ---
--- Mematikan script lama jika ada
+-- 1. BERSIHKAN SCRIPT LAMA
 if _G.FahriScriptActive then
     _G.FahriScriptActive = false
     task.wait(0.2)
 end
+if CoreGui:FindFirstChild("FahriPremiumUI_V2") then
+    CoreGui.FahriPremiumUI_V2:Destroy()
+end
 
--- Menghapus UI lama agar tidak menumpuk
-pcall(function()
-    if CoreGui:FindFirstChild("FahriPremiumUI") then
-        CoreGui.FahriPremiumUI:Destroy()
-    end
-end)
-
--- --- 2. GAME LOGIC SETUP ---
+-- 2. LOAD DATA
 local success, GiftingController = pcall(function()
     return require(ReplicatedStorage:WaitForChild("Controllers"):WaitForChild("GiftingController"))
 end)
 
-if not success or not GiftingController then
-    game.StarterGui:SetCore("SendNotification", {
-        Title = "System Error";
-        Text = "Controller tidak ditemukan. Tunggu loading game!";
-        Duration = 5;
-    })
+if not success then
+    game.StarterGui:SetCore("SendNotification", {Title="Error"; Text="Tunggu game loading 100%!"; Duration=5;})
     return
 end
 
--- --- 3. UI CREATION (PREMIUM STYLE) ---
-
+-- 3. BUAT UI KEREN
 local ScreenGui = Instance.new("ScreenGui")
 local MainFrame = Instance.new("Frame")
 local UICorner = Instance.new("UICorner")
-local UIGradient = Instance.new("UIGradient") -- Efek gradasi warna
-local Header = Instance.new("Frame")
+local UIGradient = Instance.new("UIGradient")
 local Title = Instance.new("TextLabel")
-local SubTitle = Instance.new("TextLabel") -- Untuk nama dev
-local TeleText = Instance.new("TextLabel") -- Untuk telegram
+local SubTitle = Instance.new("TextLabel")
 local ToggleBtn = Instance.new("TextButton")
+local CleanBtn = Instance.new("TextButton") -- Tombol Baru: Fix Layar
 local BtnCorner = Instance.new("UICorner")
+local CleanCorner = Instance.new("UICorner")
 local CloseBtn = Instance.new("TextButton")
-local Glow = Instance.new("ImageLabel") -- Efek bayangan
 
-ScreenGui.Name = "FahriPremiumUI"
+ScreenGui.Name = "FahriPremiumUI_V2"
 ScreenGui.Parent = CoreGui
 ScreenGui.ResetOnSpawn = false
-ScreenGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
 
--- Setup Main Frame (Kotak Utama)
-MainFrame.Name = "MainFrame"
+-- Frame Utama (Biru Gelap Modern)
 MainFrame.Parent = ScreenGui
-MainFrame.BackgroundColor3 = Color3.fromRGB(30, 35, 50) -- Warna Biru Gelap Elegan (Bukan Hitam Mati)
-MainFrame.BackgroundTransparency = 0.1 -- Sedikit transparan (Glass effect)
-MainFrame.Position = UDim2.new(0.5, 0, 0.5, 0) -- Tengah layar (nanti diatur anchornya)
-MainFrame.AnchorPoint = Vector2.new(0.5, 0.5) -- Titik pusat di tengah
-MainFrame.Size = UDim2.new(0, 0, 0, 0) -- Mulai dari 0 untuk animasi pop-up
+MainFrame.BackgroundColor3 = Color3.fromRGB(20, 25, 40)
+MainFrame.Position = UDim2.new(0.5, 0, 0.4, 0)
+MainFrame.AnchorPoint = Vector2.new(0.5, 0.5)
+MainFrame.Size = UDim2.new(0, 0, 0, 0) -- Animasi Start
 MainFrame.ClipsDescendants = true
 MainFrame.Active = true
 MainFrame.Draggable = true
@@ -73,135 +58,127 @@ MainFrame.Draggable = true
 UICorner.CornerRadius = UDim.new(0, 15)
 UICorner.Parent = MainFrame
 
--- Efek Gradasi pada Background
 UIGradient.Color = ColorSequence.new{
-    ColorSequenceKeypoint.new(0.00, Color3.fromRGB(45, 50, 70)),
-    ColorSequenceKeypoint.new(1.00, Color3.fromRGB(25, 30, 45))
+    ColorSequenceKeypoint.new(0.00, Color3.fromRGB(35, 40, 60)),
+    ColorSequenceKeypoint.new(1.00, Color3.fromRGB(15, 20, 30))
 }
 UIGradient.Rotation = 45
 UIGradient.Parent = MainFrame
 
--- Header Line (Garis Hiasan)
-Header.Name = "AccentLine"
-Header.Parent = MainFrame
-Header.BackgroundColor3 = Color3.fromRGB(0, 255, 200) -- Warna Cyan Neon
-Header.BorderSizePixel = 0
-Header.Position = UDim2.new(0, 0, 0, 0)
-Header.Size = UDim2.new(1, 0, 0, 4)
-
--- Judul Utama
-Title.Name = "Title"
+-- Judul
 Title.Parent = MainFrame
 Title.BackgroundTransparency = 1
 Title.Position = UDim2.new(0, 0, 0.08, 0)
 Title.Size = UDim2.new(1, 0, 0, 25)
 Title.Font = Enum.Font.GothamBlack
 Title.Text = "AUTO SOUL SCYTHE"
-Title.TextColor3 = Color3.fromRGB(255, 255, 255)
+Title.TextColor3 = Color3.fromRGB(0, 255, 220) -- Cyan Neon
 Title.TextSize = 18
-Title.TextStrokeTransparency = 0.8
 
--- Developer Credits (Sesuai Request)
-SubTitle.Name = "DevCredit"
 SubTitle.Parent = MainFrame
 SubTitle.BackgroundTransparency = 1
-SubTitle.Position = UDim2.new(0, 0, 0.72, 0)
+SubTitle.Position = UDim2.new(0, 0, 0.8, 0)
 SubTitle.Size = UDim2.new(1, 0, 0, 20)
 SubTitle.Font = Enum.Font.GothamMedium
-SubTitle.Text = "Developer : Fahri/xenavenezue"
-SubTitle.TextColor3 = Color3.fromRGB(180, 180, 200)
+SubTitle.Text = "Dev: Fahri/xenavenezue"
+SubTitle.TextColor3 = Color3.fromRGB(150, 150, 180)
 SubTitle.TextSize = 11
 
-TeleText.Name = "TeleCredit"
-TeleText.Parent = MainFrame
-TeleText.BackgroundTransparency = 1
-TeleText.Position = UDim2.new(0, 0, 0.84, 0)
-TeleText.Size = UDim2.new(1, 0, 0, 20)
-TeleText.Font = Enum.Font.GothamMedium
-TeleText.Text = "Tele : t.me/xenavenezue"
-TeleText.TextColor3 = Color3.fromRGB(0, 200, 255) -- Warna Cyan untuk link
-TeleText.TextSize = 11
-
--- Tombol Toggle Besar
-ToggleBtn.Name = "ToggleBtn"
+-- Tombol Toggle (START/STOP)
 ToggleBtn.Parent = MainFrame
-ToggleBtn.BackgroundColor3 = Color3.fromRGB(255, 60, 60) -- Merah Soft
-ToggleBtn.Position = UDim2.new(0.15, 0, 0.32, 0)
-ToggleBtn.Size = UDim2.new(0.7, 0, 0.3, 0)
+ToggleBtn.BackgroundColor3 = Color3.fromRGB(255, 60, 60)
+ToggleBtn.Position = UDim2.new(0.1, 0, 0.3, 0)
+ToggleBtn.Size = UDim2.new(0.55, 0, 0.35, 0)
 ToggleBtn.Font = Enum.Font.GothamBold
-ToggleBtn.Text = "STATUS: OFF"
+ToggleBtn.Text = "OFF"
 ToggleBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
 ToggleBtn.TextSize = 16
-ToggleBtn.AutoButtonColor = false -- Kita atur animasi sendiri
-
 BtnCorner.CornerRadius = UDim.new(0, 10)
 BtnCorner.Parent = ToggleBtn
 
+-- Tombol HAPUS UI (Ikon Sapu)
+CleanBtn.Parent = MainFrame
+CleanBtn.BackgroundColor3 = Color3.fromRGB(255, 150, 0) -- Orange
+CleanBtn.Position = UDim2.new(0.7, 0, 0.3, 0)
+CleanBtn.Size = UDim2.new(0.2, 0, 0.35, 0)
+CleanBtn.Font = Enum.Font.GothamBold
+CleanBtn.Text = "🧹" -- Emoticon Sapu
+CleanBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
+CleanBtn.TextSize = 20
+CleanCorner.CornerRadius = UDim.new(0, 10)
+CleanCorner.Parent = CleanBtn
+
 -- Tombol Close (X)
-CloseBtn.Name = "Close"
 CloseBtn.Parent = MainFrame
 CloseBtn.BackgroundTransparency = 1
-CloseBtn.Position = UDim2.new(0.88, 0, 0.02, 0)
+CloseBtn.Position = UDim2.new(0.88, 0, 0.05, 0)
 CloseBtn.Size = UDim2.new(0, 25, 0, 25)
 CloseBtn.Font = Enum.Font.GothamBold
 CloseBtn.Text = "X"
-CloseBtn.TextColor3 = Color3.fromRGB(150, 150, 160)
+CloseBtn.TextColor3 = Color3.fromRGB(180, 180, 180)
 CloseBtn.TextSize = 14
 
--- --- 4. ANIMATION FUNCTIONS ---
+-- ANIMASI BUKA MENU
+TweenService:Create(MainFrame, TweenInfo.new(0.5, Enum.EasingStyle.Back), {Size = UDim2.new(0, 260, 0, 140)}):Play()
 
--- Animasi Membuka Menu (Pop Up)
-local targetSize = UDim2.new(0, 240, 0, 160)
-local openTween = TweenService:Create(MainFrame, TweenInfo.new(0.5, Enum.EasingStyle.Back, Enum.EasingDirection.Out), {Size = targetSize})
-openTween:Play()
-
--- Fungsi Update Warna Tombol
-local function updateButton(isActive)
-    local targetColor = isActive and Color3.fromRGB(0, 200, 120) or Color3.fromRGB(255, 60, 60) -- Hijau vs Merah
-    local targetText = isActive and "STATUS: RUNNING..." or "STATUS: OFF"
-    
-    local colorTween = TweenService:Create(ToggleBtn, TweenInfo.new(0.3), {BackgroundColor3 = targetColor})
-    colorTween:Play()
-    ToggleBtn.Text = targetText
-end
-
--- --- 5. LOGIC & LOOP ---
-
-_G.FahriScriptActive = false -- Variable Global
+-- 4. LOGIC SCRIPT
+_G.FahriScriptActive = false
 local isRunning = false
+
+-- Fungsi untuk Update Warna Tombol
+local function updateBtn(state)
+    if state then
+        ToggleBtn.Text = "RUNNING..."
+        TweenService:Create(ToggleBtn, TweenInfo.new(0.3), {BackgroundColor3 = Color3.fromRGB(0, 200, 120)}):Play()
+    else
+        ToggleBtn.Text = "OFF"
+        TweenService:Create(ToggleBtn, TweenInfo.new(0.3), {BackgroundColor3 = Color3.fromRGB(255, 60, 60)}):Play()
+    end
+end
 
 ToggleBtn.MouseButton1Click:Connect(function()
     isRunning = not isRunning
     _G.FahriScriptActive = isRunning
-    
-    updateButton(isRunning)
+    updateBtn(isRunning)
 
     if isRunning then
-        -- LOGIKA SPAM (FIXED ANTI-LOADING)
         task.spawn(function()
             while _G.FahriScriptActive do
-                -- Kita bungkus lagi dengan spawn agar tidak menunggu animasi
                 task.spawn(function()
                     pcall(function()
                         GiftingController:Open("Soul Scythe")
                     end)
                 end)
-                task.wait(0.15) -- Kecepatan spam aman
+                -- SAYA UBAH DELAY JADI 0.25 AGAR TIDAK TERLALU LAGGY
+                task.wait(0.25) 
             end
         end)
     end
 end)
 
--- Logika Tombol Close dengan Animasi
+-- FITUR PEMBERSIH LAYAR (Hapus UI Game yang Stuck)
+CleanBtn.MouseButton1Click:Connect(function()
+    pcall(function()
+        local pg = Players.LocalPlayer.PlayerGui
+        -- Mencari GUI game yang namanya mengandung 'Gift' atau 'Reward'
+        for _, v in pairs(pg:GetChildren()) do
+            if v:IsA("ScreenGui") and v.Enabled then
+                -- Cek apakah ini GUI hadiah
+                if v.Name:match("Gift") or v.Name:match("Reward") or v:FindFirstChild("Frame") then
+                   -- Kita tidak delete, tapi sembunyikan saja biar aman
+                   -- Kalau kamu merasa terganggu, klik tombol sapu ini
+                   v.Enabled = false 
+                end
+            end
+        end
+        game.StarterGui:SetCore("SendNotification", {Title="UI Dibersihkan"; Text="Coba cek layar kamu sekarang."; Duration=3;})
+    end)
+end)
+
 CloseBtn.MouseButton1Click:Connect(function()
     _G.FahriScriptActive = false
     isRunning = false
-    
-    -- Animasi Menutup (Shrink)
-    local closeTween = TweenService:Create(MainFrame, TweenInfo.new(0.3, Enum.EasingStyle.Back, Enum.EasingDirection.In), {Size = UDim2.new(0,0,0,0)})
-    closeTween:Play()
-    
-    closeTween.Completed:Connect(function()
-        ScreenGui:Destroy()
-    end)
+    TweenService:Create(MainFrame, TweenInfo.new(0.3), {Size = UDim2.new(0,0,0,0)}):Play()
+    task.wait(0.3)
+    ScreenGui:Destroy()
 end)
